@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Data Pelatihan & Bimbingan - Kutai Kartanegara</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        /* Style Halaman Login */
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 90vh;
+        }
+        .login-card {
+            background: #ffffff;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            border-top: 5px solid #dc2626;
+        }
+        .login-card h2 { margin-top: 0; color: #0f172a; text-align: center; margin-bottom: 5px; font-size: 20px; }
+        .login-card p { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 25px; }
+        .login-form .form-group { margin-bottom: 15px; }
+        .login-form label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #475569; }
+        .login-form input, .login-form select {
+            width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;
+        }
+        .btn-login { width: 100%; padding: 12px; background-color: #dc2626; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .btn-login:hover { background-color: #b91c1c; }
+        .login-error { color: #ef4444; font-size: 13px; text-align: center; margin-top: 10px; display: none; font-weight: 500; }
+
+        /* Aplikasi Utama */
+        #mainApplication { display: none; }
+
+        .header {
+            background: linear-gradient(135deg, #dc2626, #1e3a8a);
+            color: #ffffff;
+            padding: 25px 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { margin: 0 0 5px 0; font-size: 22px; }
+        .header p { margin: 0; font-size: 14px; opacity: 0.9; }
+        .btn-logout { background: #ffffff; color: #dc2626; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; margin-top: 5px; transition: 0.2s; }
+        .btn-logout:hover { background-color: #f1f5f9; }
+        
+        .container { max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+        .section-box {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .box-header-flex {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;
+        }
+        .box-header-flex h2 { border: none; margin: 0; padding: 0; font-size: 18px; color: #0f172a; }
+        
+        /* Navigasi Sub-Menu Entry */
+        .entry-nav {
+            display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;
+        }
+        .nav-tab {
+            padding: 10px 20px; background: #e2e8f0; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s;
+        }
+        .nav-tab.active { background: #1e3a8a; color: white; }
+
+        /* Grid Form */
+        .grid-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #475569; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; box-sizing: border-box;
+        }
+        
+        /* Tombol */
+        .btn-container { margin-top: 20px; text-align: right; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s;}
+        .btn-primary { background-color: #1e3a8a; color: white; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-success:hover { background-color: #059669; }
+        .btn-warning { background-color: #f59e0b; color: white; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-danger:hover { background-color: #b91c1c; }
+        .btn-edit { background-color: #f59e0b; color: white; padding: 6px 12px; font-size: 11px; border-radius: 4px; cursor:pointer; border:none; font-weight: bold;}
+        .btn-delete { background-color: #ef4444; color: white; padding: 6px 12px; font-size: 11px; border-radius: 4px; cursor:pointer; border:none; font-weight: bold;}
+        
+        /* Tabel */
+        .table-responsive { overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; background: #fff; white-space: nowrap; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; vertical-align: middle; }
+        th { background-color: #1e3a8a; color: white; text-align: center; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .center-cell { text-align: center; }
+        .total-row { background-color: #cbd5e1 !important; font-weight: bold; color: #0f172a; }
+
+        /* Preview Table Specific */
+        .preview-box { background: #fffbeb; border: 1px dashed #f59e0b; padding: 15px; border-radius: 6px; margin-top: 15px; display: none;}
+        
+        /* Notifikasi Sukses Custom */
+        .notif-sukses {
+            display: none; background-color: #d1fae5; color: #065f46; padding: 12px 20px;
+            border-radius: 6px; font-size: 14px; font-weight: 600; margin-bottom: 15px; border: 1px solid #10b981;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper" id="loginPage">
+    <div class="login-card">
+        <h2>Sistem Data Pelatihan</h2>
+        <p>Silakan masukkan akun Anda untuk masuk</p>
+        <div class="login-form">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="loginUser" placeholder="Masukkan username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Masukkan password">
+            </div>
+            <button class="btn-login" onclick="prosesMasukSistem()">Masuk ke Sistem</button>
+            <div class="login-error" id="loginError">Username atau Password salah!</div>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="mainApplication">
+    <div class="header">
+        <div>
+            <h1>Sistem Data Pelatihan & Bimbingan Koperasi</h1>
+            <p>Dinas Koperasi dan UKM Kabupaten Kutai Kartanegara</p>
+        </div>
+        <div style="text-align: right;">
+            <span id="txtBadgeTahun" style="font-size: 12px; background: #dc2626; padding: 4px 10px; border-radius: 4px; font-weight:bold;">Tahun: -</span><br>
+            <button class="btn-logout" onclick="prosesLogout()">Keluar Aplikasi</button>
+        </div>
+    </div>
+
+    <div class="section-box" id="formArea">
+        <div class="box-header-flex">
+            <h2 id="formTitle">Menu Utama Input & Kelola Entri Data Pelatihan</h2>
+        </div>
+
+        <div id="notifUploadSukses" class="notif-sukses">
+            🎉 Berhasil! Data Pelatihan telah sukses disimpan dan tersinkronisasi ke dalam database sistem.
+        </div>
+
+        <div class="entry-nav">
+            <div class="nav-tab active" id="tabManual" onclick="gantiMetodeEntry('MANUAL')">✍️ Input Formulir Manual</div>
+            <div class="nav-tab" id="tabExcel" onclick="gantiMetodeEntry('EXCEL')">📥 Upload Massal via Berkas Excel</div>
+        </div>
+
+        <div id="kontenManual">
+            <div class="grid-form" id="areaFormFields">
+                <div class="form-group"><label>Nama Peserta</label><input type="text" id="i_nama_peserta"></div>
+                <div class="form-group">
+                    <label>Jenis Kelamin</label>
+                    <select id="i_jenis_kelamin">
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Kecamatan</label><select id="i_kecamatan"></select></div>
+                <div class="form-group"><label>Desa/Kelurahan</label><input type="text" id="i_desa"></div>
+                <div class="form-group"><label>Nama Pelatihan/Bimbingan</label><input type="text" id="i_pelatihan"></div>
+                <div class="form-group"><label>Tanggal Pelaksanaan</label><input type="text" id="i_tanggal" placeholder="Contoh: 12-13 Agustus 2026"></div>
+                <div class="form-group"><label>Tempat Pelaksanaan</label><input type="text" id="i_tempat"></div>
+                
+                <div class="form-group">
+                    <label>Pelaksana</label>
+                    <select id="i_pelaksana">
+                        <option value="Pemerintah">Pemerintah</option>
+                        <option value="Mandiri">Mandiri</option>
+                        <option value="Pihak Lain">Pihak Lain</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Penyelenggara</label><input type="text" id="i_penyelenggara"></div>
+                <div class="form-group">
+                    <label>Tahun</label>
+                    <select id="i_tahun">
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>No Kontak Peserta</label><input type="text" id="i_kontak"></div>
+                <div class="form-group"><label>Asal/Nama Koperasi</label><input type="text" id="i_koperasi"></div>
+                <div class="form-group"><label>Keterangan</label><input type="text" id="i_keterangan"></div>
+            </div>
+            <div class="btn-container">
+                <button class="btn btn-primary" id="btnSimpan" onclick="simpanDataManual()">Simpan Data</button>
+            </div>
+        </div>
+
+        <div id="kontenExcel" style="display: none;">
+            <div style="background-color: #eff6ff; padding: 20px; border-radius: 6px; border: 1px solid #bfdbfe;">
+                <label style="display: block; font-weight: bold; margin-bottom: 10px; color: #1e3a8a;">Pilih File Excel Anda (.xlsx / .xls):</label>
+                <input type="file" id="fileInput" accept=".xlsx, .xls" onchange="bacaPreviewExcel(event)">
+                <p style="font-size: 13px; color: #475569; margin-top: 8px; margin-bottom: 0;">
+                    * Pastikan urutan kolom di Excel Anda: <strong>Nama Peserta | Jenis Kelamin | Kecamatan | Desa | Pelatihan | Tanggal | Tempat | Pelaksana | Penyelenggara | Tahun | Kontak | Koperasi | Keterangan</strong>.
+                </p>
+            </div>
+
+            <div class="preview-box" id="areaPreviewExcel">
+                <h3 style="margin-top: 0; color: #b45309; font-size: 16px;">🔍 Pratinjau Lembar Kerja Excel</h3>
+                <p style="font-size: 13px; margin-bottom: 15px;">Terdeteksi <strong id="txtCountExcel">0</strong> data siap ditambahkan. Silakan tinjau sebelum menyimpan:</p>
+                
+                <div class="table-responsive">
+                    <table id="tabelPreviewExcel">
+                        <thead>
+                            <tr style="background-color: #d97706;">
+                                <th>No</th>
+                                <th>Nama Peserta</th>
+                                <th>Jenis Kelamin</th>
+                                <th>Kecamatan</th>
+                                <th>Desa/Kelurahan</th>
+                                <th>Nama Pelatihan</th>
+                                <th>Tanggal</th>
+                                <th>Tempat</th>
+                                <th>Pelaksana</th>
+                                <th>Penyelenggara</th>
+                                <th>Tahun</th>
+                                <th>Kontak</th>
+                                <th>Asal Koperasi</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 15px; text-align: right;">
+                    <button class="btn btn-warning" onclick="batalkanUploadExcel()" style="margin-right: 10px;">Batalkan</button>
+                    <button class="btn btn-success" onclick="konfirmasiSimpanExcel()">✅ Simpan & Sinkronkan Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-box" id="panelRekapContainer">
+        <div class="box-header-flex">
+            <h2>📊 Tabel Rekapitulasi Pelatihan Per Kecamatan</h2>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-success" onclick="exportRekapExcel()">📊 Download Rekap Excel</button>
+                <button class="btn btn-danger" onclick="exportRekapPDF()">📕 Download Rekap PDF</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="tabelRekap">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width: 40px;">No</th>
+                        <th rowspan="2">Kecamatan</th>
+                        <th rowspan="2" style="background-color: #3b82f6;">Total Peserta</th>
+                        <th colspan="2" style="background-color: #b91c1c;">Breakdown Jenis Kelamin</th>
+                        <th rowspan="2" style="background-color: #10b981;">Total Koperasi Terlibat (Unik)</th>
+                    </tr>
+                    <tr>
+                        <th style="background-color: #b91c1c;">Laki-laki</th>
+                        <th style="background-color: #b91c1c;">Perempuan</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section-box" id="panelDetailContainer">
+        <div class="box-header-flex">
+            <h2>📋 Daftar Detail Database Pelatihan</h2>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-success" onclick="exportDetailExcel()">📊 Download Detail Excel</button>
+                <button class="btn btn-danger" onclick="exportDetailPDF()">📕 Download Detail PDF</button>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="tabelDetail">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Aksi</th>
+                        <th>Nama Peserta</th>
+                        <th>Jenis Kelamin</th>
+                        <th>Kecamatan</th>
+                        <th>Desa/Kelurahan</th>
+                        <th>Nama Pelatihan</th>
+                        <th>Tanggal</th>
+                        <th>Tempat</th>
+                        <th>Pelaksana</th>
+                        <th>Penyelenggara</th>
+                        <th>Tahun</th>
+                        <th>Kontak</th>
+                        <th>Asal Koperasi</th>
+                        <th>Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let TAHUN_AKTIF = "2026";
+    let dbPelatihan = [];
+    let dbTemporaryExcel = [];
+    let ID_EDIT = null;
+    
+    const urutanKecamatanResmi = [
+        "TENGGARONG", "TENGGARONG SEBERANG", "LOA KULU", "LOA JANAN", "MUARA KAMAN",
+        "SEBULU", "KOTA BANGUN", "KOTA BANGUN DARAT", "MUARA MUNTAI", "MUARA WIS",
+        "KENOHAN", "KEMBANG JANGGUT", "TABANG", "SAMBOJA", "SAMBOJA BARAT", 
+        "MUARA JAWA", "SANGA SANGA", "ANGGANA", "MUARA BADAK", "MARANG KAYU"
+    ];
+
+    function inisialisasiPilihanKecamatan() {
+        const sKec = document.getElementById('i_kecamatan');
+        sKec.innerHTML = '';
+        urutanKecamatanResmi.forEach(kec => {
+            sKec.innerHTML += `<option value="${kec}">${kec}</option>`;
+        });
+    }
+
+    function prosesMasukSistem() {
+        const userInp = document.getElementById('loginUser').value.trim();
+        const passInp = document.getElementById('loginPassword').value;
+        const errorDiv = document.getElementById('loginError');
+
+        // Validasi Akun
+        if (userInp === 'admin' && passInp === 'admin') {
+            errorDiv.style.display = 'none';
+            
+            // Set Default Tahun
+            TAHUN_AKTIF = "2026";
+            const namaKeyLokal = 'db_pelatihan_tahun_' + TAHUN_AKTIF;
+            dbPelatihan = JSON.parse(localStorage.getItem(namaKeyLokal)) || [];
+
+            document.getElementById('txtBadgeTahun').innerText = "Tahun Anggaran: " + TAHUN_AKTIF;
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('mainApplication').style.display = 'flex';
+
+            inisialisasiPilihanKecamatan();
+            document.getElementById('i_tahun').value = TAHUN_AKTIF; 
+            jalankanRenderUI();
+        } else {
+            errorDiv.style.display = 'block';
+        }
+    }
+
+    function prosesLogout() {
+        document.getElementById('mainApplication').style.display = 'none';
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('loginUser').value = '';
+        document.getElementById('loginPassword').value = '';
+    }
+
+    function gantiMetodeEntry(metode) {
+        document.getElementById('tabManual').classList.remove('active');
+        document.getElementById('tabExcel').classList.remove('active');
+        document.getElementById('kontenManual').style.display = 'none';
+        document.getElementById('kontenExcel').style.display = 'none';
+        
+        if(metode === 'MANUAL') {
+            document.getElementById('tabManual').classList.add('active');
+            document.getElementById('kontenManual').style.display = 'block';
+        } else {
+            document.getElementById('tabExcel').classList.add('active');
+            document.getElementById('kontenExcel').style.display = 'block';
+        }
+    }
+
+    function tampilkanNotifikasiSukses() {
+        const notif = document.getElementById('notifUploadSukses');
+        notif.style.display = 'block';
+        window.scrollTo({top: document.getElementById('formArea').offsetTop - 20, behavior: 'smooth'});
+        setTimeout(() => { notif.style.display = 'none'; }, 5000);
+    }
+
+    function resetForm() {
+        ID_EDIT = null;
+        document.getElementById('formTitle').innerText = "Menu Utama Input & Kelola Entri Data Pelatihan";
+        ['i_nama_peserta','i_desa','i_pelatihan','i_tanggal','i_tempat','i_penyelenggara','i_kontak','i_koperasi','i_keterangan'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+    }
+
+    function jalankanRenderUI() {
+        renderTabelMaster();
+        renderTabelRekap();
+    }
+
+    function simpanDataManual() {
+        const item = {
+            id: ID_EDIT || Date.now().toString(),
+            nama: document.getElementById('i_nama_peserta').value,
+            jk: document.getElementById('i_jenis_kelamin').value,
+            kec: document.getElementById('i_kecamatan').value,
+            desa: document.getElementById('i_desa').value,
+            pelatihan: document.getElementById('i_pelatihan').value,
+            tgl: document.getElementById('i_tanggal').value,
+            tempat: document.getElementById('i_tempat').value,
+            pelaksana: document.getElementById('i_pelaksana').value,
+            penyelenggara: document.getElementById('i_penyelenggara').value,
+            tahun: document.getElementById('i_tahun').value,
+            kontak: document.getElementById('i_kontak').value,
+            koperasi: document.getElementById('i_koperasi').value,
+            ket: document.getElementById('i_keterangan').value
+        };
+
+        if(ID_EDIT) {
+            const idx = dbPelatihan.findIndex(x => x.id === ID_EDIT);
+            if(idx !== -1) dbPelatihan[idx] = item;
+        } else {
+            dbPelatihan.push(item);
+        }
+
+        localStorage.setItem('db_pelatihan_tahun_' + TAHUN_AKTIF, JSON.stringify(dbPelatihan));
+        resetForm();
+        jalankanRenderUI();
+        tampilkanNotifikasiSukses();
+    }
+
+    /* --- FUNGSI UPLOAD EXCEL --- */
+    function bacaPreviewExcel(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheetName = workbook.SheetNames[0];
+            const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1});
+            
+            dbTemporaryExcel = [];
+            for(let i=1; i<rawData.length; i++) {
+                const row = rawData[i];
+                if(row && row.length > 0 && row[0]) {
+                    dbTemporaryExcel.push({
+                        id: Date.now().toString() + '_' + i,
+                        nama: row[0] || '', 
+                        jk: row[1] || 'Laki-laki', 
+                        kec: row[2] || '',
+                        desa: row[3] || '', 
+                        pelatihan: row[4] || '', 
+                        tgl: row[5] || '', 
+                        tempat: row[6] || '',
+                        pelaksana: row[7] || 'Pemerintah', 
+                        penyelenggara: row[8] || '', 
+                        tahun: row[9] || TAHUN_AKTIF, 
+                        kontak: row[10] || '',
+                        koperasi: row[11] || '', 
+                        ket: row[12] || ''
+                    });
+                }
+            }
+            document.getElementById('txtCountExcel').innerText = dbTemporaryExcel.length;
+            document.getElementById('areaPreviewExcel').style.display = 'block';
+            renderPreviewExcelTable();
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function renderPreviewExcelTable() {
+        const tbody = document.querySelector('#tabelPreviewExcel tbody');
+        tbody.innerHTML = '';
+        dbTemporaryExcel.forEach((x, idx) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="center-cell">${idx+1}</td>
+                    <td>${x.nama}</td><td>${x.jk}</td><td>${x.kec}</td><td>${x.desa}</td>
+                    <td>${x.pelatihan}</td><td>${x.tgl}</td><td>${x.tempat}</td><td>${x.pelaksana}</td>
+                    <td>${x.penyelenggara}</td><td>${x.tahun}</td><td>${x.kontak}</td><td>${x.koperasi}</td>
+                    <td>${x.ket}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function batalkanUploadExcel() {
+        dbTemporaryExcel = [];
+        document.getElementById('fileInput').value = '';
+        document.getElementById('areaPreviewExcel').style.display = 'none';
+    }
+
+    function konfirmasiSimpanExcel() {
+        if(dbTemporaryExcel.length === 0) return;
+        dbPelatihan = [...dbPelatihan, ...dbTemporaryExcel];
+        localStorage.setItem('db_pelatihan_tahun_' + TAHUN_AKTIF, JSON.stringify(dbPelatihan));
+        batalkanUploadExcel();
+        jalankanRenderUI();
+        tampilkanNotifikasiSukses();
+    }
+
+    /* --- FUNGSI RENDER TABEL & REKAP --- */
+    function renderTabelMaster() {
+        const tbody = document.querySelector('#tabelDetail tbody');
+        tbody.innerHTML = '';
+
+        dbPelatihan.forEach((x, idx) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="center-cell">${idx+1}</td>
+                    <td class="center-cell">
+                        <button class="btn-edit" onclick="editData('${x.id}')">Edit</button>
+                        <button class="btn-delete" onclick="hapusData('${x.id}')">Hapus</button>
+                    </td>
+                    <td>${x.nama}</td><td>${x.jk}</td><td>${x.kec}</td><td>${x.desa}</td>
+                    <td>${x.pelatihan}</td><td>${x.tgl}</td><td>${x.tempat}</td><td>${x.pelaksana}</td>
+                    <td>${x.penyelenggara}</td><td>${x.tahun}</td><td>${x.kontak}</td><td>${x.koperasi}</td>
+                    <td>${x.ket}</td>
+                </tr>
+            `;
+        });
+    }
+    
+    function renderTabelRekap() {
+        const tbody = document.querySelector('#tabelRekap tbody');
+        tbody.innerHTML = '';
+
+        let totalPesertaGlobal = 0, totalLGlobal = 0, totalPGlobal = 0, totalKoperasiGlobal = 0;
+
+        urutanKecamatanResmi.forEach((kec, index) => {
+            const list = dbPelatihan.filter(x => x.kec === kec);
+            
+            const jmlL = list.filter(x => x.jk === 'Laki-laki').length;
+            const jmlP = list.filter(x => x.jk === 'Perempuan').length;
+            
+            // Hitung koperasi unik (case-insensitive & abaikan spasi kosong)
+            const uniqueKoperasi = new Set(list.map(x => (x.koperasi || '').trim().toUpperCase()).filter(k => k !== ''));
+            const jmlKoperasi = uniqueKoperasi.size;
+
+            totalPesertaGlobal += list.length;
+            totalLGlobal += jmlL;
+            totalPGlobal += jmlP;
+            totalKoperasiGlobal += jmlKoperasi;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td class="center-cell">${index + 1}</td>
+                    <td><strong>${kec}</strong></td>
+                    <td class="center-cell">${list.length}</td>
+                    <td class="center-cell">${jmlL}</td>
+                    <td class="center-cell">${jmlP}</td>
+                    <td class="center-cell">${jmlKoperasi}</td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML += `
+            <tr class="total-row">
+                <td colspan="2" class="center-cell">TOTAL KESELURUHAN</td>
+                <td class="center-cell">${totalPesertaGlobal}</td>
+                <td class="center-cell">${totalLGlobal}</td>
+                <td class="center-cell">${totalPGlobal}</td>
+                <td class="center-cell">${totalKoperasiGlobal}</td>
+            </tr>
+        `;
+    }
+
+    function editData(id) {
+        const x = dbPelatihan.find(d => d.id === id);
+        if(!x) return;
+        ID_EDIT = id;
+        
+        gantiMetodeEntry('MANUAL');
+        document.getElementById('formTitle').innerText = "📝 MODE EDIT DATA: " + x.nama;
+
+        document.getElementById('i_nama_peserta').value = x.nama;
+        document.getElementById('i_jenis_kelamin').value = x.jk;
+        document.getElementById('i_kecamatan').value = x.kec;
+        document.getElementById('i_desa').value = x.desa;
+        document.getElementById('i_pelatihan').value = x.pelatihan;
+        document.getElementById('i_tanggal').value = x.tgl;
+        document.getElementById('i_tempat').value = x.tempat;
+        document.getElementById('i_pelaksana').value = x.pelaksana;
+        document.getElementById('i_penyelenggara').value = x.penyelenggara;
+        document.getElementById('i_tahun').value = x.tahun;
+        document.getElementById('i_kontak').value = x.kontak;
+        document.getElementById('i_koperasi').value = x.koperasi;
+        document.getElementById('i_keterangan').value = x.ket;
+        
+        window.scrollTo({top: document.getElementById('formArea').offsetTop - 20, behavior: 'smooth'});
+    }
+
+    function hapusData(id) {
+        if(confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+            dbPelatihan = dbPelatihan.filter(x => x.id !== id);
+            localStorage.setItem('db_pelatihan_tahun_' + TAHUN_AKTIF, JSON.stringify(dbPelatihan));
+            jalankanRenderUI();
+        }
+    }
+    
+    /* --- FUNGSI EXPORT DETAIL --- */
+    function exportDetailExcel() {
+        if (dbPelatihan.length === 0) { alert("Tidak ada data untuk diexport!"); return; }
+        const dataExcel = dbPelatihan.map((x, idx) => ({
+            "No": idx + 1, "Nama Peserta": x.nama, "Jenis Kelamin": x.jk, "Kecamatan": x.kec, "Desa/Kelurahan": x.desa,
+            "Nama Pelatihan/Bimbingan": x.pelatihan, "Tanggal Pelaksanaan": x.tgl, "Tempat Pelaksanaan": x.tempat,
+            "Pelaksana": x.pelaksana, "Penyelenggara": x.penyelenggara, "Tahun": x.tahun, "No Kontak Peserta": x.kontak,
+            "Asal/Nama Koperasi": x.koperasi, "Keterangan": x.ket
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(dataExcel);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Pelatihan");
+        XLSX.writeFile(workbook, `Detail_Data_Pelatihan.xlsx`);
+    }
+
+    function exportDetailPDF() {
+        if (dbPelatihan.length === 0) { alert("Tidak ada data untuk diexport!"); return; }
+        const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape' });
+        doc.setFontSize(14); doc.text(`Daftar Detail Database Pelatihan & Bimbingan Koperasi`, 14, 15);
+        doc.setFontSize(10); doc.text("Dinas Koperasi dan UKM Kabupaten Kutai Kartanegara", 14, 21);
+        const kolom = ["No", "Nama Peserta", "JK", "Kecamatan", "Desa/Kel", "Nama Pelatihan", "Tanggal", "Tempat", "Pelaksana", "Penyelenggara", "Tahun", "Kontak", "Asal Koperasi", "Keterangan"];
+        const baris = dbPelatihan.map((x, idx) => [idx + 1, x.nama, x.jk, x.kec, x.desa, x.pelatihan, x.tgl, x.tempat, x.pelaksana, x.penyelenggara, x.tahun, x.kontak, x.koperasi, x.ket]);
+        doc.autoTable({ head: [kolom], body: baris, startY: 26, theme: 'grid', styles: { fontSize: 7, cellPadding: 2 }, headStyles: { fillColor: [30, 58, 138], textColor: [255, 255, 255], halign: 'center' }});
+        doc.save(`Detail_Data_Pelatihan.pdf`);
+    }
+
+    /* --- FUNGSI EXPORT REKAP --- */
+    function extractRekapData() {
+        let arr = []; let tP = 0, tL = 0, tPer = 0, tK = 0;
+        urutanKecamatanResmi.forEach((kec, index) => {
+            const list = dbPelatihan.filter(x => x.kec === kec);
+            const jmlL = list.filter(x => x.jk === 'Laki-laki').length;
+            const jmlP = list.filter(x => x.jk === 'Perempuan').length;
+            const uniqueKoperasi = new Set(list.map(x => (x.koperasi || '').trim().toUpperCase()).filter(k => k !== ''));
+            
+            arr.push({ "No": index + 1, "Kecamatan": kec, "Total Peserta": list.length, "Laki-laki": jmlL, "Perempuan": jmlP, "Total Koperasi Terlibat": uniqueKoperasi.size });
+            tP += list.length; tL += jmlL; tPer += jmlP; tK += uniqueKoperasi.size;
+        });
+        arr.push({ "No": "-", "Kecamatan": "TOTAL KESELURUHAN", "Total Peserta": tP, "Laki-laki": tL, "Perempuan": tPer, "Total Koperasi Terlibat": tK });
+        return arr;
+    }
+
+    function exportRekapExcel() {
+        const dataExcel = extractRekapData();
+        const worksheet = XLSX.utils.json_to_sheet(dataExcel);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Pelatihan");
+        XLSX.writeFile(workbook, `Rekap_Pelatihan_Kecamatan.xlsx`);
+    }
+
+    function exportRekapPDF() {
+        const data = extractRekapData();
+        const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait' });
+        doc.setFontSize(14); doc.text(`Rekapitulasi Pelatihan & Bimbingan Koperasi Per Kecamatan`, 14, 15);
+        doc.setFontSize(10); doc.text("Dinas Koperasi dan UKM Kabupaten Kutai Kartanegara", 14, 21);
+        
+        const kolom = ["No", "Kecamatan", "Total Peserta", "Laki-laki", "Perempuan", "Total Koperasi Terlibat"];
+        const baris = data.map(x => [x["No"], x["Kecamatan"], x["Total Peserta"], x["Laki-laki"], x["Perempuan"], x["Total Koperasi Terlibat"]]);
+        
+        doc.autoTable({
+            head: [kolom], body: baris, startY: 26, theme: 'grid', 
+            styles: { fontSize: 9, cellPadding: 3, halign: 'center' },
+            columnStyles: { 1: { halign: 'left', fontStyle: 'bold' } },
+            headStyles: { fillColor: [30, 58, 138], textColor: [255, 255, 255] },
+            didParseCell: function (data) {
+                if (data.row.index === baris.length - 1) { // Baris Total Keseluruhan
+                    data.cell.styles.fillColor = [203, 213, 225];
+                    data.cell.styles.fontStyle = 'bold';
+                    data.cell.styles.textColor = [15, 23, 42];
+                }
+            }
+        });
+        doc.save(`Rekap_Pelatihan_Kecamatan.pdf`);
+    }
+</script>
+</body>
+</html>
